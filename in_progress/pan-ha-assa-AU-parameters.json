@@ -1,0 +1,98 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vmNamePrefix": {
+      "value": "AP003GSSCAP"
+    },
+    "vmNamePrefixCount": {
+      "value": 9999
+    },
+    "vmInstances": {
+      "value": 2
+    },
+    "vmSize": {
+      "value": "Standard_DS3_v2"
+    },
+    "vmImageVersion": {
+      "value": "9.0.6"
+    },
+    "vmImageSku": {
+      "value": "byol"
+    },
+    "virtualNetworkName": {
+      "value": "HUB-AP003"
+    },
+    "virtualNetworkAddressPrefixes": {
+      "value": [
+        "10.209.0.0/22"
+      ]
+    },
+    "mgmtSubnetName": {
+      "value": "FWManagementSubnet"
+    },
+    "mgmtSubnetNSG": {
+      "value": "FWManagementSubnet"
+    },
+    "srcIPinboundNSGmgmt": {
+      "value": "100.64.18.5"
+    },
+    "mgmtSubnetUDR": {
+      "value": "FWManagementSubnet"
+    },
+    "externalSubnetName": {
+      "value": "FWExternalSubnet"
+    },
+    "externalSubnetNSG": {
+      "value": "FWExternalSubnet"
+    },
+    "externalSubnetUDR": {
+      "value": "FWExternalSubnet"
+    },
+    "internalSubnetName": {
+      "value": "FWInternalSubnet"
+    },
+    "internalSubnetNSG": {
+      "value": "FWInternalSubnet"
+    },
+    "internalSubnetUDR": {
+      "value": "FWInternalSubnet"
+    },
+    "mgmtSubnetPrefix": {
+      "value": "10.209.3.128/27"
+    },
+    "externalSubnetPrefix": {
+      "value": "10.209.3.160/27"
+    },
+    "internalSubnetPrefix": {
+      "value": "10.209.3.192/27"
+    },
+    "internalLbIpAddress": {
+      "value": "10.209.3.222"
+    },
+    "mgmtSubnetIpAddresses": {
+      "value": [
+        "10.209.3.132",
+        "10.209.3.133"
+      ]
+    },
+    "externalSubnetIpAddresses": {
+      "value": [
+        "10.209.3.164",
+        "10.209.3.165"
+      ]
+    },
+    "internalSubnetIpAddresses": {
+      "value": [
+        "10.209.3.196",
+        "10.209.3.197"
+      ]
+    },
+    "adminUsername": {
+      "value": "panazadmin"
+    },
+    "adminPassword": {
+      "value": null
+    }
+  }
+}

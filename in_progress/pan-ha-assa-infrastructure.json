@@ -1,0 +1,263 @@
+  {
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "virtualNetworkName": {
+        "type": "string",
+        "defaultValue": "vn-security",
+        "metadata": {
+          "description": "Name of the Virtual Network (VNET)"
+        }
+      },
+      "virtualNetworkAddressPrefixes": {
+      "type": "array",
+      "defaultValue": ["10.0.0.0/16"],
+      "metadata": {
+      "description": "Virtual network address CIDR"
+        }
+      },
+      "mgmtSubnetName": {
+        "type": "string",
+        "defaultValue": "sn-mgmt",
+        "metadata": {
+          "description": "Subnet for Management"
+        }
+      },
+      "mgmtSubnetNSG": {
+        "type": "string",
+        "defaultValue": "nsg-sn-pan-mgmt",
+        "metadata": {
+          "description": "Name for Management Subnet NSG"
+        }
+      },
+      "srcIPinboundNSGmgmt": {
+        "type": "string",
+        "metadata": {
+        "description": "Your source public IP address. Added to the management subnet NSG"
+          },
+          "defaultValue": "0.0.0.0/0"
+      },
+      "mgmtSubnetUDR": {
+        "type": "string",
+        "defaultValue": "rt-sn-pan-mgmt",
+        "metadata": {
+          "description": "Name for Management Subnet Route Table"
+        }
+      },
+      "externalSubnetName": {
+        "type": "string",
+        "defaultValue": "sn-external",
+        "metadata": {
+          "description": "Subnet for External"
+        }
+      },
+      "externalSubnetNSG": {
+        "type": "string",
+        "defaultValue": "nsg-sn-pan-external",
+        "metadata": {
+          "description": "Name for External Subnet NSG"
+        }
+      },
+      "externalSubnetUDR": {
+        "type": "string",
+        "defaultValue": "rt-sn-pan-external",
+        "metadata": {
+         "description": "Name for Management Subnet Route Table"
+        }
+      },
+      "internalSubnetName": {
+        "type": "string",
+        "defaultValue": "sn-internal",
+        "metadata": {
+          "description": "Subnet for Internal"
+        }
+      },
+      "internalSubnetNSG": {
+        "type": "string",
+        "defaultValue": "nsg-sn-pan-internal",
+        "metadata": {
+          "description": "Name for Internal Subnet NSG"
+        }
+      },
+      "internalSubnetUDR": {
+        "type": "string",
+        "defaultValue": "rt-sn-pan-internal",
+        "metadata": {
+          "description": "Name for Management Subnet Route Table"
+        }
+      },
+      "mgmtSubnetPrefix": {
+        "type": "string",
+        "defaultValue": "10.0.0.64/28",
+        "metadata": {
+          "description": "Mgmt subnet CIDR"
+        }
+      },
+      "externalSubnetPrefix": {
+        "type": "string",
+        "defaultValue": "10.0.0.16/28",
+        "metadata": {
+          "description": "External subnet CIDR"
+        }
+      },
+      "internalSubnetPrefix": {
+        "type": "string",
+        "defaultValue": "10.0.0.0/28",
+        "metadata": {
+          "description": "EXISTING internal subnet CIDR"
+        }
+      }
+    },
+    "variables": {
+      
+      "resourceGroupName":  "[resourceGroup().name]",
+    
+
+      "vnetId": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
+      "virtualNetworkAddressPrefix": "[parameters('virtualNetworkAddressPrefixes')[0]]",
+      "mgmtSubnetRef": "[concat(variables('vnetId'),'/subnets/',parameters('mgmtSubnetName'))]",
+      "externalSubnetRef": "[concat(variables('vnetId'),'/subnets/',parameters('externalSubnetName'))]",
+      "internalSubnetRef": "[concat(variables('vnetId'),'/subnets/',parameters('internalSubnetName'))]",
+      "mgmtNSGname": "[parameters('mgmtSubnetNSG')]",
+      "srcIPinboundNSGmgmt": "[parameters('srcIPinboundNSGmgmt')]",
+      "externalNSGname": "[parameters('externalSubnetNSG')]",
+      "internalNSGname": "[parameters('internalSubnetNSG')]",
+      "mgmtUDRname": "[parameters('mgmtSubnetUDR')]",
+      "externalUDRname": "[parameters('externalSubnetUDR')]",
+      "internalUDRname": "[parameters('internalSubnetUDR')]",
+
+
+      "subnets": [
+        {
+          "name": "[parameters('mgmtSubnetName')]",
+          "properties": {
+            "addressPrefix": "[parameters('mgmtSubnetPrefix')]",
+            "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('mgmtNSGname'))]"
+            },
+            "routeTable": {
+                "id": "[resourceId('Microsoft.Network/routeTables', variables('mgmtUDRname'))]"
+            }
+          }
+        },
+        {
+          "name": "[parameters('externalSubnetName')]",
+          "properties": {
+            "addressPrefix": "[parameters('externalSubnetPrefix')]",
+            "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('externalNSGname'))]"
+            },
+            "routeTable": {
+                "id": "[resourceId('Microsoft.Network/routeTables', variables('externalUDRname'))]"
+            }
+          }
+        },
+        {
+          "name": "[parameters('internalSubnetName')]",
+          "properties": {
+            "addressPrefix": "[parameters('internalSubnetPrefix')]",
+            "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('internalNSGname'))]"
+            },
+            "routeTable": {
+                "id": "[resourceId('Microsoft.Network/routeTables', variables('internalUDRname'))]"
+            }
+          }
+        }
+      ]     
+    },
+
+    "resources": [
+      {
+        "name": "[variables('mgmtNSGname')]",
+        "type": "Microsoft.Network/networkSecurityGroups",
+        "apiVersion": "2017-10-01",
+        "location": "[resourceGroup().location]",
+        "properties": {
+            "securityRules": [
+                {
+                  "name": "Allow-Outside-From-IP",
+                  "properties": {
+                      "description": "Rule",
+                      "protocol": "*",
+                      "sourcePortRange": "*",
+                      "destinationPortRange": "*",
+                      "sourceAddressPrefix": "[variables('srcIPinboundNSGmgmt')]",
+                      "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                    }
+                  }
+                ]
+              }
+      },
+      {
+        "name": "[variables('mgmtUDRname')]",
+        "type": "Microsoft.Network/routeTables",
+        "apiVersion": "2020-04-01",
+        "location": "[resourceGroup().location]",
+          "dependsOn": [],
+          "properties": {
+          "disableBgpRoutePropagation": false
+              }
+      },
+      {
+        "name": "[variables('externalNSGname')]",
+        "type": "Microsoft.Network/networkSecurityGroups",
+        "apiVersion": "2017-10-01",
+        "location": "[resourceGroup().location]",
+        "properties": {
+            "securityRules": []
+              }
+      },
+      {
+        "name": "[variables('externalUDRname')]",
+        "type": "Microsoft.Network/routeTables",
+        "apiVersion": "2020-04-01",
+        "location": "[resourceGroup().location]",
+          "dependsOn": [],
+          "properties": {
+          "disableBgpRoutePropagation": false
+              }
+      },
+          {
+        "name": "[variables('internalNSGname')]",
+        "type": "Microsoft.Network/networkSecurityGroups",
+        "apiVersion": "2017-10-01",
+        "location": "[resourceGroup().location]",
+        "properties": {
+            "securityRules": []
+              }
+      },
+      {
+        "name": "[variables('internalUDRname')]",
+        "type": "Microsoft.Network/routeTables",
+        "apiVersion": "2020-04-01",
+        "location": "[resourceGroup().location]",
+          "dependsOn": [],
+          "properties": {
+          "disableBgpRoutePropagation": false
+              }
+      },
+      {
+        "name": "[parameters('virtualNetworkName')]",
+        "type": "Microsoft.Network/virtualNetworks",
+        "apiVersion": "2017-10-01",
+        "dependsOn": [
+          "[resourceId('Microsoft.Network/networkSecurityGroups', variables('mgmtNSGName'))]",
+          "[resourceId('Microsoft.Network/networkSecurityGroups', variables('externalNSGName'))]",
+          "[resourceId('Microsoft.Network/networkSecurityGroups', variables('internalNSGName'))]"
+          ],
+        "location": "[resourceGroup().location]",
+        "properties": {
+          "addressSpace": {
+              "addressPrefixes": [
+                  "[variables('virtualNetworkAddressPrefix')]"
+                  ]
+          },
+            "subnets": "[variables('subnets')]"
+        }
+      }
+    ]
+  }

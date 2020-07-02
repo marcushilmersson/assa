@@ -1,0 +1,556 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+      "PCSStorageAccountName": {
+      "type": "string",
+      "defaultValue": "vpn06eu002std",     
+      "metadata": {
+        "description": "Storage account name where PCS image is uploaded"
+      }
+    },
+    "PCSStorageAccountResourceGroupName": {
+      "type": "string",
+      "defaultValue": "VPN06-EU002",     
+      "metadata": {
+        "description": "Resource group of the existing storage account where PCS image is uploaded"
+      }
+    },
+    "PCSImageLocationURI": {
+      "type": "string",
+       "defaultValue": "https://vpn06eu002std.blob.core.windows.net/image/PSA-V-HYPERV-PCS-4763.1-SERIAL-hyperv.vhd",    
+      "metadata": {
+        "description": "URL of PCS vhd image"
+      }
+    },
+    "PCSVMName": {
+      "type": "string",
+      "defaultValue": "EU002GSSCAP0026",
+      "metadata": {
+      "description": "Pulse Connect Secure Name"
+               }
+            },    
+    "PCSConfig": {
+      "type": "string",
+      "defaultValue": "<pulse-config><primary-dns>10.230.134.18</primary-dns><secondary-dns>10.230.134.19</secondary-dns><wins-server>10.230.134.18</wins-server><dns-domain>ad.global</dns-domain><admin-username>admin</admin-username><admin-password>JGm2TgV4V5HHtYc2iCGW8gGk</admin-password><cert-common-name>EU002GSSCAP0026.ad.global</cert-common-name><cert-random-text>3zDk5jimTeiFwD8aUmRw2LSC</cert-random-text><cert-organisation>ASSA ABLOY</cert-organisation><config-download-url></config-download-url><config-data></config-data><auth-code-license></auth-code-license><enable-license-server>n</enable-license-server><accept-license-agreement>y</accept-license-agreement><enable-rest>n</enable-rest></pulse-config>",
+      "metadata": {
+      "description": "Enter PCS config."
+               }
+            },
+    "SSHPublicKey": {
+      "type": "string",
+      "metadata": {
+        "description": "Provide an RSA public key. This key is used to access PCS via SSH. You can generate SSH keys using ssh-keygen on Linux and OS X, or PuTTyGen on Windows. SSH Public key should be in base64 encoded format"
+      }
+    },        
+    "dnsLabelPrefixExt": {
+      "type": "string",
+     "defaultValue": "vpn06-eu002-ext",           
+      "metadata": {
+        "description": "Unique DNS Name for the Public IP used to access PCS"
+      }
+    },
+    "dnsLabelPrefixMgmt": {
+      "type": "string",
+     "defaultValue": "vpn06-eu002-mgt",           
+      "metadata": {
+        "description": "Unique DNS Name for the Public IP used to access PCS"
+      }
+    },
+    "ResourceGroupNameOfExistingVirtualNetwork": {
+        "type": "string",
+        "defaultValue": "VPN06-EU002",
+        "metadata": {
+            "description": "Name of the resource group that contains the existing virutal network."
+        }
+    },
+    "existingVnetName": {
+        "type": "string",
+        "defaultValue": "VPN06-EU002",
+        "metadata": {
+            "description": "Name of existing virtual network"
+        }
+    },
+    "existingInternalSubnet": {
+        "type": "string",
+        "defaultValue": "InternalSubnet",
+        "metadata": {
+            "description": "PCS internal interface connects to this subnet"
+        }
+    },
+    "existingExternalSubnet": {
+        "type": "string",
+        "defaultValue": "ExternalSubnet",
+        "metadata": {
+            "description": "PCS external interface connects to this subnet"
+        }
+    },
+    "existingManagementSubnet": {
+        "type": "string",
+        "defaultValue": "ManagementSubnet",
+        "metadata": {
+            "description": "PCS management interface connects to this subnet"
+        }
+    },
+    "existingTunnelSubnet": {
+        "type": "string",
+        "defaultValue": "TunnelSubnet",
+        "metadata": {
+            "description": "Subnet used for VPN Pools"
+        }
+    }
+  },
+  "variables": {
+    "routeTableName"            : "EU002GSSCAP0026BackEndToPCS",
+    "pcsIntNic"                 : "EU002GSSCAP0026IntNIC",
+    "pcsExtNic"                 : "EU002GSSCAP0026ExtNIC",
+    "pcsMgmtNic"                : "EU002GSSCAP0026MgtNIC",
+    "publicIPAddr1"             : "EU002GSSCAP0026ExtIP",
+    "publicIPAddr2"             : "EU002GSSCAP0026MgtIP",
+    "publicIPAddressType"       : "Static",
+    "nsgInt"                    : "EU002GSSCAP0026IntNSG",
+    "nsgExt"                    : "EU002GSSCAP0026ExtNSG",
+    "nsgMgmt"                   : "EU002GSSCAP0026MgtNSG",
+    "vmSize"                    : "Standard_DS3_v2",
+    "vnetID"                    : "[resourceId(parameters('ResourceGroupNameOfExistingVirtualNetwork'), 'Microsoft.Network/virtualNetworks', parameters('existingVnetName'))]",
+    "subnetRefInt"              : "[concat(variables('vnetID'),'/subnets/',parameters('existingInternalSubnet'))]",
+    "subnetRefExt"              : "[concat(variables('vnetID'),'/subnets/',parameters('existingExternalSubnet'))]",
+    "subnetRefMgmt"             : "[concat(variables('vnetID'),'/subnets/',parameters('existingManagementSubnet'))]",
+    "subnetRefTunnel"           : "[concat(variables('vnetID'),'/subnets/',parameters('existingTunnelSubnet'))]",
+    "apiVersion"                : "2015-06-15"
+  },
+  "resources": [
+     {
+      "apiVersion": "2019-04-01",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('publicIPAddr1')]",
+      "location": "[resourceGroup().location]",
+      "sku": {
+                "name": "Standard"
+            },
+      "properties": {
+        "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('dnsLabelPrefixExt')]"
+        }
+      }
+    },
+
+    {
+      "apiVersion": "2019-04-01",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('publicIPAddr2')]",
+      "location": "[resourceGroup().location]",
+      "sku": {
+                "name": "Standard"
+            },
+      "properties": {
+        "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('dnsLabelPrefixMgmt')]"
+        }
+      }
+    },
+    {
+        "type": "Microsoft.Network/networkSecurityGroups",
+        "name": "[variables('nsgExt')]",
+        "apiVersion": "2019-04-01",
+        "location": "[resourceGroup().location]",
+        "properties": {
+            "securityRules": [
+                    {
+                        "name": "allowHTTPS",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 300,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "allowESP",
+                        "properties": {
+                            "protocol": "UDP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "4500",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 400,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "allowGeoDNS",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "10.0.0.0/8",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    },					
+                    {
+                        "name": "denyInternalSubnet",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "[reference(variables('subnetRefInt'), providers('Microsoft.Network', 'virtualNetworks').apiVersions[0]).addressPrefix]",
+                            "access": "Deny",
+                            "priority": 100,
+                            "direction": "Outbound"
+                        }
+                    },
+                    {
+                        "name": "denyPoolRange",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "[reference(variables('subnetRefTunnel'), providers('Microsoft.Network', 'virtualNetworks').apiVersions[0]).addressPrefix]",
+                            "access": "Deny",
+                            "priority": 200,
+                            "direction": "Outbound"
+                        }
+                    }
+                ]
+            }
+        },
+    
+    {
+        "type": "Microsoft.Network/networkSecurityGroups",
+        "name": "[variables('nsgMgmt')]",
+        "apiVersion": "2019-04-01",
+        "location": "[resourceGroup().location]",
+        "properties": {
+            "securityRules": [
+                    {
+                        "name": "allowSSH",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "6667",
+                            "sourceAddressPrefix": "10.0.0.0/8",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 200,
+                            "direction": "Inbound"
+                        }
+                    },                    
+					{
+                        "name": "allowHTTPS",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "10.0.0.0/8",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 300,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "allowDMI",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "830",
+                            "sourceAddressPrefix": "10.0.0.0/8",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 400,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "denyInternalSubnet",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "[reference(variables('subnetRefInt'), providers('Microsoft.Network', 'virtualNetworks').apiVersions[0]).addressPrefix]",
+                            "access": "Deny",
+                            "priority": 100,
+                            "direction": "Outbound"
+                        }
+                    },
+                    {
+                        "name": "denyExternalSubnet",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "[reference(variables('subnetRefExt'), providers('Microsoft.Network', 'virtualNetworks').apiVersions[0]).addressPrefix]",
+                            "access": "Deny",
+                            "priority": 200,
+                            "direction": "Outbound"
+                        }
+                    }
+                    
+                ]
+            }
+        },
+{
+    "type": "Microsoft.Network/networkSecurityGroups",
+    "name": "[variables('nsgInt')]",
+    "apiVersion": "2019-04-01",
+    "location": "[resourceGroup().location]",
+    "properties": {
+        "securityRules": [
+                    {
+                        "name": "denyExternalSubnet",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "[reference(variables('subnetRefExt'), providers('Microsoft.Network', 'virtualNetworks').apiVersions[0]).addressPrefix]",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "allowSSH",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "6667",
+                            "sourceAddressPrefix": "10.0.0.0/8",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 200,
+                            "direction": "Inbound"
+                        }
+                    },                    
+					{
+                        "name": "allowHTTPS",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "10.0.0.0/8",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 300,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+    {
+      "apiVersion": "2016-09-01",
+      "type": "Microsoft.Network/routeTables",
+      "name": "[variables('routeTableName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces/', variables('pcsIntNic'))]"
+      ],
+      "properties": {
+        "routes": [
+          {
+            "name": "BackEndToPCS",
+            "properties": {
+              "addressPrefix": "[reference(variables('subnetRefTunnel'), providers('Microsoft.Network', 'virtualNetworks').apiVersions[0]).addressPrefix]",
+              "nextHopType": "VirtualAppliance",
+              "nextHopIpAddress": "[reference(variables('pcsIntNic')).ipConfigurations[0].properties.privateIPAddress]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2016-09-01",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('pcsExtNic')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddr1'))]",
+        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgExt'))]"         
+      ],
+      "properties": {
+        "enableIPForwarding": true,
+		"enableAcceleratedNetworking": false,
+        "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgExt'))]"
+              },
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod":"Dynamic",
+              "privateIPAddressVersion":"IPv4",                 
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddr1'))]"
+              },
+              "subnet": {
+                "id": "[variables('subnetRefExt')]"
+              }
+              
+            }
+          }
+        ]                         
+      }
+    },
+
+    {
+      "apiVersion": "2016-09-01",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('pcsMgmtNic')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddr2'))]",
+        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgMgmt'))]"         
+      ],
+      "properties": {
+        "enableIPForwarding": true,
+		"enableAcceleratedNetworking": false,
+        "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgMgmt'))]"
+              },
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod":"Dynamic",
+              "privateIPAddressVersion":"IPv4",                 
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddr2'))]"
+              },
+              "subnet": {
+                "id": "[variables('subnetRefMgmt')]"
+              }
+              
+            }
+          }
+        ]                         
+      }
+    },
+
+    {
+      "apiVersion": "2016-09-01",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('pcsIntNic')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgInt'))]"         
+      ],
+      "properties": {
+        "enableIPForwarding": true,
+		"enableAcceleratedNetworking": false,
+        "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgInt'))]"
+              },
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod":"Dynamic",
+              "privateIPAddressVersion":"IPv4",                 
+              "subnet": {
+                "id": "[variables('subnetRefInt')]"
+              }
+              
+            }
+          }
+        ]                         
+      }
+    },
+    
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[parameters('PCSVmName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces/', variables('pcsIntNic'))]",
+        "[resourceId('Microsoft.Network/networkInterfaces/', variables('pcsExtNic'))]",
+        "[resourceId('Microsoft.Network/networkInterfaces/', variables('pcsMgmtNic'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('PCSVmName')]",
+          "adminUsername": "dummyuser",
+          "customData": "[base64(parameters('PCSConfig'))]",
+          "linuxConfiguration": {
+              "disablePasswordAuthentication": "true",
+                  "ssh": {
+                      "publicKeys": [
+                           {
+                                "path": "[concat('/home/', 'dummyuser', '/.ssh/authorized_keys')]",
+                                "keyData": "[parameters('SSHPublicKey')]"
+                           }
+                      ]
+                  }      
+        }
+        },
+        "storageProfile": {
+          "osDisk": {
+            "name": "osdisk",
+            "osType": "Linux",
+            "caching": "ReadWrite",
+            "createOption": "FromImage",
+            "image": {
+              "uri": "[parameters('PCSImageLocationURI')]"
+            },
+            "vhd": {
+              "uri": "[concat(reference(resourceId(parameters('PCSStorageAccountResourceGroupName'), 'Microsoft.Storage/storageAccounts/', parameters('PCSStorageAccountName')), variables('apiVersion')).primaryEndpoints.blob, 'vhds/',parameters('PCSVmName'), uniquestring(resourceGroup().id), 'pcsOSDisk.vhd')]"
+            }                                 
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('pcsIntNic'))]",
+              "properties": {
+                "primary": true
+              }
+            },
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('pcsExtNic'))]",
+              "properties": {
+                "primary": false
+              }
+            },
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('pcsMgmtNic'))]",
+              "properties": {
+                "primary": false
+              }
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": "true",
+            "storageUri": "[concat(reference(resourceId(parameters('PCSStorageAccountResourceGroupName'), 'Microsoft.Storage/storageAccounts/', parameters('PCSStorageAccountName')), variables('apiVersion')).primaryEndpoints.blob)]"
+          }
+        }
+      }
+    }
+    
+  ],
+  "outputs": {
+    "hostname": {
+      "type": "string",
+      "value": "[reference(variables('publicIPAddr1')).dnsSettings.fqdn]"
+    }
+  }
+}
