@@ -1,0 +1,32 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "virtualNetworkName": {
+      "value": "HUB-AP003"
+    },
+    "virtualNetworkAddressPrefixes": {
+      "value": [
+        "10.209.0.0/22"
+      ]
+    },
+    "mgmtSubnetName": {
+      "value": "FWManagementSubnet"
+    },
+    "externalSubnetName": {
+      "value": "FWExternalSubnet"
+    },
+    "internalSubnetName": {
+      "value": "FWInternalSubnet"
+    },
+    "mgmtSubnetPrefix": {
+      "value": "10.209.3.128/27"
+    },
+    "externalSubnetPrefix": {
+      "value": "10.209.3.160/27"
+    },
+    "internalSubnetPrefix": {
+      "value": "10.209.3.192/27"
+    }
+  }
+}
