@@ -118,7 +118,7 @@
         {
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2022-09-01",
-            "name": "WLCDeployment",
+            "name": "ISEDeployment",
             "dependsOn": [
                 "[variables('networkInterfaceName')]",
                 "[parameters('networkSecurityGroupName')]"
