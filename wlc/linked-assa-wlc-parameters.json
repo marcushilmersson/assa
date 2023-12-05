@@ -1,151 +1,91 @@
 {
-    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
         "location": {
-            "type": "string"
+            "value": "westeurope"
         },
         "networkSecurityGroupName": {
-            "type": "string"
+            "value": "vm-assa-wlc"
         },
         "networkSecurityGroupRules": {
-            "type": "array"
-        },
-        "subnetName": {
-            "type": "string"
-        },
-        "virtualNetworkName": {
-            "type": "string"
-        },
-        "virtualNetworkResourceGroup": {
-            "type": "string"
-        },
-        "addressPrefixes": {
-            "type": "array"
-        },
-        "subnets": {
-            "type": "array"
-        },
-        "virtualMachineName": {
-            "type": "string"
-        },
-        "virtualMachineRG": {
-            "type": "string"
-        },
-        "virtualMachine1Zone": {
-            "type": "string"
-        },
-        "virtualMachineIpAddress": {
-            "type": "string"
-        },
-        "osDiskType": {
-            "type": "string"
-        },
-        "osDiskDeleteOption": {
-            "type": "string"
-        },
-        "virtualMachineSize": {
-            "type": "string"
-        },
-        "nicDeleteOption": {
-            "type": "string"
-        },
-        "adminUsername": {
-            "type": "string"
-        },     
-        "vaultName": {
-            "type": "string",
-            "metadata": {
-              "description": "The name of the keyvault that contains the secret."
-            }
-        },
-        "vaultSecretName": {
-            "type": "string",
-            "metadata": {
-              "description": "The name of the secret."
-            }
-        },
-        "vaultResourceGroupName": {
-            "type": "string",
-            "metadata": {
-              "description": "The name of the resource group that contains the keyvault."
-            }
-        }
-    },
-    "variables": {
-        "nsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroupName'))]",
-        "vnetName": "[parameters('virtualNetworkName')]",
-        "vnetId": "[resourceId(parameters('virtualNetworkResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
-        "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('subnetName'))]",
-        "networkInterfaceName": "[parameters('virtualMachineName')]"
-    },
-    "resources": [
-        {
-            "name": "[parameters('virtualMachineName')]",
-            "type": "Microsoft.Compute/virtualMachines",
-            "apiVersion": "2022-03-01",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[concat('Microsoft.Network/networkInterfaces/', variables('networkInterfaceName'))]"
-            ],
-            "properties": {
-                "hardwareProfile": {
-                    "vmSize": "[parameters('virtualMachineSize')]"
-                },
-                "storageProfile": {
-                    "osDisk": {
-                        "name": "[concat(parameters('virtualMachineName'),'_','OsDisk')]",
-                        "createOption": "fromImage",
-                        "managedDisk": {
-                            "storageAccountType": "[parameters('osDiskType')]"
-                        },
-                        "deleteOption": "[parameters('osDiskDeleteOption')]"
-                    },
-                    "imageReference": {
-                        "publisher": "cisco",
-                        "offer": "cisco-wlc-basic-template",
-                        "sku": "17_7_1",
-                        "version": "latest"
-                    }
-                },
-                "networkProfile": {
-                    "networkInterfaces": [
-                        {
-                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))]",
-                            "properties": {
-                                "deleteOption": "[parameters('nicDeleteOption')]"
-                            }
-                        }
-                    ]
-                },
-                "osProfile": {
-                    "computerName": "[parameters('virtualMachineName')]",
-                    "adminUsername": "[parameters('adminUsername')]",
-                    "adminPassword": "[parameters('adminPassword')]",
-                    "linuxConfiguration": {
-                        "disablePasswordAuthentication": false
-                    }
-                },
-                "diagnosticsProfile": {
-                    "bootDiagnostics": {
-                        "enabled": true
+            "value": [
+                {
+                    "name": "allowSSH",
+                    "properties": {
+                        "priority": 110,
+                        "protocol": "TCP",
+                        "access": "Allow",
+                        "direction": "Inbound",
+                        "sourceApplicationSecurityGroups": [],
+                        "destinationApplicationSecurityGroups": [],
+                        "sourceAddressPrefix": "*",
+                        "sourcePortRange": "*",
+                        "destinationAddressPrefix": "*",
+                        "destinationPortRange": "22"
                     }
                 }
-            },
-            "plan": {
-                "name": "17_7_1",
-                "publisher": "cisco",
-                "product": "cisco-wlc-basic-template"
-            },
-            "zones": [
-                "[parameters('virtualMachine1Zone')]"
             ]
-        }
-    ],
-    "outputs": {
+        },
+        "subnetName": {
+            "value": "default"
+        },
+        "virtualNetworkName": {
+            "value": "vn-wifi"
+        },
+        "virtualNetworkResourceGroup": {
+            "value": "rg-wifi"
+        },
+        "addressPrefixes": {
+            "value": [
+                "10.0.0.0/24"
+            ]
+        },
+        "subnets": {
+            "value": [
+                {
+                    "name": "default",
+                    "properties": {
+                        "addressPrefix": "10.0.0.0/24"
+                    }
+                }
+            ]
+        },
+        "virtualMachineName": {
+            "value": "vm-assa-wlc"
+        },
+        "virtualMachineRG": {
+            "value": "rg-assa-vms"
+        },
+        "virtualMachine1Zone": {
+            "value": "1"
+        },
+        "virtualMachineIpAddress": {
+            "value": "10.0.0.4"
+        },
+        "osDiskType": {
+            "value": "Premium_LRS"
+        },
+        "osDiskDeleteOption": {
+            "value": "Delete"
+        },
+        "virtualMachineSize": {
+            "value": "Standard_DS1_v2"
+        },
+        "nicDeleteOption": {
+            "value": "Detach"
+        },
         "adminUsername": {
-            "type": "string",
-            "value": "[parameters('adminUsername')]"
+            "value": "azureuser"
+        },
+        "vaultName": {
+            "value": "FW-EU002"
+        },
+        "vaultSecretName": {
+            "value": "wlccredentials"
+        },
+        "vaultResourceGroupName": {
+            "value": "FW-EU002"
         }
     }
 }
