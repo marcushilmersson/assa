@@ -55,7 +55,7 @@
             "value": "vm-assa-wlc"
         },
         "virtualMachineRG": {
-            "value": "rg-assa-vms"
+            "value": "rg-assa-wlc"
         },
         "virtualMachine1Zone": {
             "value": "1"

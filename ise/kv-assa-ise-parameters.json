@@ -55,7 +55,10 @@
             "value": "vm-assa-ise"
         },
         "virtualMachineRG": {
-            "value": "rg-assa-"
+            "value": "rg-assa-ise"
+        },
+        "virtualMachine1Zone": {
+            "value": "1"
         },
         "virtualMachineIpAddress": {
             "value": "10.0.0.5"
@@ -75,11 +78,15 @@
         "adminUsername": {
             "value": "azureuser"
         },
-        "virtualMachine1Zone": {
-            "value": "1"
+
+        "vaultName": {
+            "value": "kv-assa"
         },
-        "adminPassword": {
-            "value": "!abc123!!fgG"
+        "vaultSecretName": {
+            "value": "isecredentials"
+        },
+        "vaultResourceGroupName": {
+            "value": "rg-wifi"
         }
     }
 }
