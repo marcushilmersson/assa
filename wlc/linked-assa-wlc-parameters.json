@@ -11,7 +11,7 @@
         "networkSecurityGroupRules": {
             "value": [
                 {
-                    "name": "allowSSH",
+                    "name": "allowSSH2",
                     "properties": {
                         "priority": 110,
                         "protocol": "TCP",
