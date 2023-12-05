@@ -126,7 +126,7 @@
             "properties": {
               "mode": "Incremental",
               "templateLink": {
-                "uri": "https://raw.githubusercontent.com/marcushilmersson/assa/master/ise/linked-kv-assa-ise.json",
+                "uri": "https://raw.githubusercontent.com/marcushilmersson/assa/master/ise/linked-deploy-kv-assa-ise.json",
                 "contentVersion": "1.0.0.0"
               },
               "parameters": {
