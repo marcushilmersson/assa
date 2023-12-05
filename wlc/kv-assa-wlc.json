@@ -126,12 +126,78 @@
             "properties": {
               "mode": "Incremental",
               "templateLink": {
-                "uri": "https://raw.githubusercontent.com/marcushilmersson/assa/master/wlc/linked-deploy-assa-wlc.json",
+                "uri": "https://raw.githubusercontent.com/marcushilmersson/assa/master/wlc/linked-deploy-assa-wlc.json?token=GHSAT0AAAAAACLGOBYPNIETOPUKDHA26G7CZLPBCFA",
                 "contentVersion": "1.0.0.0"
               },
-              "parametersLink": {
-                "uri": "https://raw.githubusercontent.com/marcushilmersson/assa/master/wlc/linked-deploy-assa-wlc-parameters.json",
-                "contentVersion": "1.0.0.0"
+              "parameters": {
+                "location": {
+                    "value": "[parameters('location')]"
+                },
+                "networkSecurityGroupName": {
+                    "value": "[parameters('networkSecurityGroupName')]"
+                },
+                "networkSecurityGroupRules": {
+                    "value": "[parameters('networkSecurityGroupRules')]"
+                },
+                "subnetName": {
+                    "value": "[parameters('subnetName')]"
+                },
+                "virtualNetworkName": {
+                    "value": "[parameters('virtualNetworkName')]"
+                },
+                "virtualNetworkResourceGroup": {
+                    "value": "[parameters('virtualNetworkResourceGroup')]"
+                },
+                "addressPrefixes": {
+                    "value": "[parameters('addressPrefixes')]"
+                },
+                "subnets": {
+                    "value": "[parameters('subnets')]"
+                },
+                "virtualMachineName": {
+                    "value": "[parameters('virtualMachineName')]"
+                },
+                "virtualMachineRG": {
+                    "value": "[parameters('virtualMachineRG')]"
+                },
+                "virtualMachine1Zone": {
+                    "value": "[parameters('virtualMachine1Zone')]"
+                },
+                "virtualMachineIpAddress": {
+                    "value": "[parameters('virtualMachineIpAddress')]"
+                },
+                "osDiskType": {
+                    "value": "[parameters('osDiskType')]"
+                },
+                "osDiskDeleteOption": {
+                    "value": "[parameters('osDiskDeleteOption')]"
+                },
+                "virtualMachineSize": {
+                    "value": "[parameters('virtualMachineSize')]"
+                },
+                "nicDeleteOption": {
+                    "value": "[parameters('nicDeleteOption')]"
+                },
+                "adminUsername": {
+                    "value": "[parameters('adminUsername')]"
+                },
+                "vaultName": {
+                    "value": "[parameters('vaultName')]"
+                },
+                "vaultSecretName": {
+                    "value": "[parameters('vaultSecretName')]"
+                },
+                "vaultResourceGroupName": {
+                    "value": "[parameters('vaultResourceGroupName')]"
+                },
+                "adminPassword": {
+                    "reference": {
+                    "keyVault": {
+                      "id": "[resourceId(subscription().subscriptionId,  parameters('vaultResourceGroupName'), 'Microsoft.KeyVault/vaults', parameters('vaultName'))]"
+                  },
+                    "secretName": "[parameters('vaultSecretName')]"
+                  }
+                }
               }
             }
           }
