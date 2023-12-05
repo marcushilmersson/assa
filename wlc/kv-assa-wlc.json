@@ -70,14 +70,6 @@
             "metadata": {
               "description": "The name of the resource group that contains the keyvault."
             }
-        },
-        "adminPassword": {
-            "reference": {
-            "keyVault": {
-              "id": "[resourceId(subscription().subscriptionId,  parameters('vaultResourceGroupName'), 'Microsoft.KeyVault/vaults', parameters('vaultName'))]"
-          },
-            "secretName": "[parameters('vaultSecretName')]"
-          }
         }
     },
     "variables": {
