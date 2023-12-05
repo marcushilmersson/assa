@@ -53,8 +53,23 @@
         "virtualMachine1Zone": {
             "type": "string"
         },
-        "adminPassword": {
-            "type": "secureString"
+        "vaultName": {
+            "type": "string",
+            "metadata": {
+              "description": "The name of the keyvault that contains the secret."
+            }
+        },
+        "vaultSecretName": {
+            "type": "string",
+            "metadata": {
+              "description": "The name of the secret."
+            }
+        },
+        "vaultResourceGroupName": {
+            "type": "string",
+            "metadata": {
+              "description": "The name of the resource group that contains the keyvault."
+            }
         }
     },
     "variables": {
@@ -101,68 +116,91 @@
             }
         },
         {
-            "name": "[parameters('virtualMachineName')]",
-            "type": "Microsoft.Compute/virtualMachines",
-            "apiVersion": "2022-03-01",
-            "location": "[parameters('location')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2022-09-01",
+            "name": "WLCDeployment",
             "dependsOn": [
-                "[concat('Microsoft.Network/networkInterfaces/', variables('networkInterfaceName'))]"
-            ],
+                "[variables('networkInterfaceName')]",
+                "[parameters('networkSecurityGroupName')]"
+              ],
             "properties": {
-                "hardwareProfile": {
-                    "vmSize": "[parameters('virtualMachineSize')]"
+              "mode": "Incremental",
+              "templateLink": {
+                "uri": "https://raw.githubusercontent.com/marcushilmersson/assa/master/ise/linked-kv-assa-ise.json",
+                "contentVersion": "1.0.0.0"
+              },
+              "parameters": {
+                "location": {
+                    "value": "[parameters('location')]"
                 },
-                "storageProfile": {
-                    "osDisk": {
-                        "name": "[concat(parameters('virtualMachineName'),'_','OsDisk')]",
-                        "createOption": "fromImage",
-                        "managedDisk": {
-                            "storageAccountType": "[parameters('osDiskType')]"
-                        },
-                        "deleteOption": "[parameters('osDiskDeleteOption')]"
-                    },
-                    "imageReference": {
-                        "publisher": "cisco",
-                        "offer": "cisco-ise-virtual",
-                        "sku": "cisco-ise_3_2",
-                        "version": "latest"
-                    }
+                "networkSecurityGroupName": {
+                    "value": "[parameters('networkSecurityGroupName')]"
                 },
-                "networkProfile": {
-                    "networkInterfaces": [
-                        {
-                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))]",
-                            "properties": {
-                                "deleteOption": "[parameters('nicDeleteOption')]"
-                            }
-                        }
-                    ]
+                "networkSecurityGroupRules": {
+                    "value": "[parameters('networkSecurityGroupRules')]"
                 },
-                "osProfile": {
-                    "computerName": "[parameters('virtualMachineName')]",
-                    "adminUsername": "[parameters('adminUsername')]",
-                    "adminPassword": "[parameters('adminPassword')]",
-                    "linuxConfiguration": {
-                        "patchSettings": {
-                            "patchMode": "ImageDefault"
-                        }
-                    }
+                "subnetName": {
+                    "value": "[parameters('subnetName')]"
                 },
-                "diagnosticsProfile": {
-                    "bootDiagnostics": {
-                        "enabled": true
-                    }
+                "virtualNetworkName": {
+                    "value": "[parameters('virtualNetworkName')]"
+                },
+                "virtualNetworkResourceGroup": {
+                    "value": "[parameters('virtualNetworkResourceGroup')]"
+                },
+                "addressPrefixes": {
+                    "value": "[parameters('addressPrefixes')]"
+                },
+                "subnets": {
+                    "value": "[parameters('subnets')]"
+                },
+                "virtualMachineName": {
+                    "value": "[parameters('virtualMachineName')]"
+                },
+                "virtualMachineRG": {
+                    "value": "[parameters('virtualMachineRG')]"
+                },
+                "virtualMachine1Zone": {
+                    "value": "[parameters('virtualMachine1Zone')]"
+                },
+                "virtualMachineIpAddress": {
+                    "value": "[parameters('virtualMachineIpAddress')]"
+                },
+                "osDiskType": {
+                    "value": "[parameters('osDiskType')]"
+                },
+                "osDiskDeleteOption": {
+                    "value": "[parameters('osDiskDeleteOption')]"
+                },
+                "virtualMachineSize": {
+                    "value": "[parameters('virtualMachineSize')]"
+                },
+                "nicDeleteOption": {
+                    "value": "[parameters('nicDeleteOption')]"
+                },
+                "adminUsername": {
+                    "value": "[parameters('adminUsername')]"
+                },
+                "vaultName": {
+                    "value": "[parameters('vaultName')]"
+                },
+                "vaultSecretName": {
+                    "value": "[parameters('vaultSecretName')]"
+                },
+                "vaultResourceGroupName": {
+                    "value": "[parameters('vaultResourceGroupName')]"
+                },
+                "adminPassword": {
+                    "reference": {
+                    "keyVault": {
+                      "id": "[resourceId(subscription().subscriptionId,  parameters('vaultResourceGroupName'), 'Microsoft.KeyVault/vaults', parameters('vaultName'))]"
+                  },
+                    "secretName": "[parameters('vaultSecretName')]"
+                  }
                 }
-            },
-            "plan": {
-                "name": "cisco-ise_3_2",
-                "publisher": "cisco",
-                "product": "cisco-ise-virtual"
-            },
-            "zones": [
-                "[parameters('virtualMachine1Zone')]"
-            ]
-        }
+              }
+            }
+          }
     ],
     "outputs": {
         "adminUsername": {

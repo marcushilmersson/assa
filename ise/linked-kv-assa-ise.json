@@ -53,9 +53,31 @@
         "virtualMachine1Zone": {
             "type": "string"
         },
+        "vaultName": {
+            "type": "string",
+            "metadata": {
+              "description": "The name of the keyvault that contains the secret."
+            }
+        },
+        "vaultSecretName": {
+            "type": "string",
+            "metadata": {
+              "description": "The name of the secret."
+            }
+        },
+        "vaultResourceGroupName": {
+            "type": "string",
+            "metadata": {
+              "description": "The name of the resource group that contains the keyvault."
+            }
+        },
         "adminPassword": {
-            "type": "secureString"
-        }
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+              "description": "Password for the administrator account."
+            }
+          }
     },
     "variables": {
         "nsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroupName'))]",
