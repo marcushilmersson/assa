@@ -86,6 +86,14 @@
         },
         "vaultResourceGroupName": {
             "value": "rg-wifi"
+        },
+        "adminPassword": {
+            "reference": {
+            "keyVault": {
+              "id": "[resourceId(subscription().subscriptionId,  parameters('vaultResourceGroupName'), 'Microsoft.KeyVault/vaults', parameters('vaultName'))]"
+          },
+            "secretName": "[parameters('vaultSecretName')]"
+          }
         }
     }
 }
