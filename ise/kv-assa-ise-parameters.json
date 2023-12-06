@@ -5,9 +5,6 @@
         "location": {
             "value": "westeurope"
         },
-        "networkSecurityGroupName": {
-            "value": "vm-assa-ise"
-        },
         "networkSecurityGroupRules": {
             "value": [
                 {
