@@ -5,9 +5,6 @@
         "location": {
             "type": "string"
         },
-        "networkSecurityGroupName": {
-            "type": "string"
-        },
         "networkSecurityGroupRules": {
             "type": "array"
         },
