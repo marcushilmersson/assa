@@ -47,6 +47,9 @@
         "nicDeleteOption": {
             "type": "string"
         },
+        "storageAccountName": {
+            "type": "string"
+        },
         "adminUsername": {
             "type": "string"
         },     
@@ -109,7 +112,12 @@
                         "sku": "17_7_1",
                         "version": "latest"
                     }
-                },
+                },"diagnosticsProfile": {
+                    "bootDiagnostics": {
+                      "enabled": "true",
+                      "storageUri": "[concat('https://', parameters('StorageAccountName'), '.blob.core.windows.net')]"
+                    }
+                  },
                 "networkProfile": {
                     "networkInterfaces": [
                         {

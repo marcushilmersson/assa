@@ -173,6 +173,9 @@
                 "nicDeleteOption": {
                     "value": "[parameters('nicDeleteOption')]"
                 },
+                "storageAccountName": {
+                    "value": "[parameters('storageAccountName')]"
+                },
                 "adminUsername": {
                     "value": "[parameters('adminUsername')]"
                 },

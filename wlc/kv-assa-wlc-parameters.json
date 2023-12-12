@@ -72,6 +72,9 @@
         "nicDeleteOption": {
             "value": "Detach"
         },
+        "storageAccountName": {
+            "value": "fwEU002std"
+        },
         "adminUsername": {
             "value": "azureuser"
         },
