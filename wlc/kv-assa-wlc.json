@@ -47,6 +47,9 @@
         "nicDeleteOption": {
             "type": "string"
         },
+        "storageAccountName": {
+            "value": "string"
+        },
         "adminUsername": {
             "type": "string"
         },
