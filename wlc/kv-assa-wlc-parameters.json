@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "location": {
-            "value": "westeurope"
+            "value": "australiaeast"
         },
         "networkSecurityGroupRules": {
             "value": [
@@ -28,37 +28,37 @@
             "value": "default"
         },
         "virtualNetworkName": {
-            "value": "vn-wifi"
+            "value": "WIFI-ASSA-AP003"
         },
         "virtualNetworkResourceGroup": {
-            "value": "rg-wifi"
+            "value": "WIFI-ASSA-AP003"
         },
         "addressPrefixes": {
             "value": [
-                "10.0.0.0/24"
+                "10.209.18.0/24"
             ]
         },
         "subnets": {
             "value": [
                 {
-                    "name": "default",
+                    "name": "ControllerSubnet",
                     "properties": {
-                        "addressPrefix": "10.0.0.0/24"
+                        "addressPrefix": "10.209.18.64/26"
                     }
                 }
             ]
         },
         "virtualMachineName": {
-            "value": "EU002GSSCAP0007"
+            "value": "AP003GSSCAP0040"
         },
         "virtualMachineRG": {
-            "value": "rg-assa-wlc"
+            "value": "WIFI-ASSA-AP003"
         },
         "virtualMachine1Zone": {
             "value": "1"
         },
         "virtualMachineIpAddress": {
-            "value": "10.0.0.4"
+            "value": "10.209.18.68"
         },
         "osDiskType": {
             "value": "Premium_LRS"
@@ -76,13 +76,13 @@
             "value": "azureuser"
         },
         "vaultName": {
-            "value": "kv-assa"
+            "value": "WIFI-ASSA-AP003"
         },
         "vaultSecretName": {
             "value": "wlccredentials"
         },
         "vaultResourceGroupName": {
-            "value": "rg-wifi"
+            "value": "WIFI-ASSA-AP003"
         }
     }
 }
