@@ -135,11 +135,6 @@
                     "linuxConfiguration": {
                         "disablePasswordAuthentication": false
                     }
-                },
-                "diagnosticsProfile": {
-                    "bootDiagnostics": {
-                        "enabled": true
-                    }
                 }
             },
             "plan": {
